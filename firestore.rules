@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function hasValidTenantId(data) {
+      return data.tenantId is string && data.tenantId.size() > 0;
+    }
+    
+    // Tenants collection
+    match /tenants/{tenantId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.name is string 
+                            && request.resource.data.name.size() > 0;
+      allow delete: if false; // Safeguard against accidental tenant deletion
+    }
+
+    // Ingredients collection - scoped by tenantId
+    match /ingredients/{ingredientId} {
+      // Must specify a tenant or query filtered by tenantId
+      allow read: if resource == null || (resource.data.tenantId is string && resource.data.tenantId.size() > 0);
+      
+      // On create: tenantId must be present and valid
+      allow create: if hasValidTenantId(request.resource.data)
+                    && request.resource.data.name is string
+                    && request.resource.data.purchasePrice is number
+                    && request.resource.data.purchasePrice >= 0;
+      
+      // On update: cannot change document tenantId to another tenant unless matching
+      allow update: if hasValidTenantId(request.resource.data)
+                    && request.resource.data.tenantId == resource.data.tenantId
+                    && request.resource.data.name is string
+                    && request.resource.data.purchasePrice is number
+                    && request.resource.data.purchasePrice >= 0;
+                    
+      // Allow delete only if document exists and has valid tenantId
+      allow delete: if resource.data.tenantId is string;
+    }
+
+    // Recipes collection - scoped by tenantId
+    match /recipes/{recipeId} {
+      // Must specify a tenant or query filtered by tenantId
+      allow read: if resource == null || (resource.data.tenantId is string && resource.data.tenantId.size() > 0);
+      
+      // On create: tenantId must be present and valid
+      allow create: if hasValidTenantId(request.resource.data)
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+      
+      // On update: cannot change document tenantId to another tenant unless matching
+      allow update: if hasValidTenantId(request.resource.data)
+                    && request.resource.data.tenantId == resource.data.tenantId
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+                    
+      // Allow delete only if document exists and has valid tenantId
+      allow delete: if resource.data.tenantId is string;
+    }
+  }
+}
+

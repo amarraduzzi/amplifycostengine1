@@ -1,0 +1,7 @@
+{
+  "name": "Amplify Cost Engine",
+  "description": "Multi-tenant kostprijs-, receptuur- en verkoopprijzen/marge-engineering voor restaurantklanten van Amplify.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "Tenant": {
+      "title": "Tenant",
+      "description": "A restaurant or business tenant in the multi-tenant system",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the tenant" },
+        "name": { "type": "string", "description": "Restaurant display name" },
+        "active": { "type": "boolean", "description": "Whether the tenant is currently active" },
+        "currency": { "type": "string", "description": "Currency code e.g. MAD" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "targetFoodCostPercentage": { "type": "number", "description": "Target food cost percentage (standard 30)" },
+        "tvaPercentage": { "type": "number", "description": "TVA percentage (standard 20)" },
+        "deliveryCommissionPercentage": { "type": "number", "description": "Delivery platform commission percentage like Glovo (standard 27)" }
+      },
+      "required": ["name", "active"]
+    },
+    "Ingredient": {
+      "title": "Ingredient",
+      "description": "Raw ingredient with purchasing cost and recipe conversion unit",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "purchaseUnit": { "type": "string" },
+        "purchasePrice": { "type": "number" },
+        "recipeUnit": { "type": "string" },
+        "conversionFactor": { "type": "number" },
+        "supplier": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "priceHistory": { "type": "array" }
+      },
+      "required": ["tenantId", "name", "category", "purchaseUnit", "purchasePrice", "recipeUnit", "conversionFactor"]
+    },
+    "Recipe": {
+      "title": "Recipe",
+      "description": "Menu dish recipe with ingredients, quantities, yield percentages, pricing, and monthly sales volume",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["voorgerecht", "hoofdgerecht", "dessert", "drank", "bijgerecht"] },
+        "portionSize": { "type": "number" },
+        "portionUnit": { "type": "string" },
+        "notes": { "type": "string" },
+        "recipeIngredients": {
+          "type": "array",
+          "description": "List of ingredient references with quantity and yield percentage"
+        },
+        "manualPriceOverride": {
+          "type": "number",
+          "description": "Optional manual selling price override in MAD (incl. TVA)"
+        },
+        "monthlySalesVolume": {
+          "type": "number",
+          "description": "Monthly sales volume for Kasavana & Smith Menu Engineering"
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["tenantId", "name", "category", "portionSize", "portionUnit", "recipeIngredients"]
+    }
+  },
+  "firestore": {
+    "/tenants/{tenantId}": {
+      "schema": { "$ref": "#/entities/Tenant" },
+      "description": "Collection of restaurants / tenants"
+    },
+    "/ingredients/{ingredientId}": {
+      "schema": { "$ref": "#/entities/Ingredient" },
+      "description": "Collection of raw ingredients scoped by tenantId"
+    },
+    "/recipes/{recipeId}": {
+      "schema": { "$ref": "#/entities/Recipe" },
+      "description": "Collection of dish recipes scoped by tenantId"
+    }
+  }
+}
